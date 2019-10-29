@@ -23,15 +23,17 @@ namespace movierecommender.Services
             _hostingEnvironment = hostingEnvironment;
         }
 
-        public static List<Movie> LoadTrendingMovies() {
+        public static List<Movie> LoadTrendingMovies()
+        {
             List<Movie> result = new List<Movie>();
 
             result.Add(new Movie { MovieID = 1573, MovieName = "Face/Off (1997)" });
-            result.Add(new Movie { MovieID = 1721,  MovieName = "Titanic (1997)" });
+            result.Add(new Movie { MovieID = 1721, MovieName = "Titanic (1997)" });
             result.Add(new Movie { MovieID = 1703, MovieName = "Home Alone 3 (1997)" });
             result.Add(new Movie { MovieID = 49272, MovieName = "Casino Royale (2006)" });
             result.Add(new Movie { MovieID = 5816, MovieName = "Harry Potter and the Chamber of Secrets (2002)" });
             result.Add(new Movie { MovieID = 3578, MovieName = "Gladiator (2000)" });
+            result.Add(new Movie { MovieID = 1203, MovieName = "12 Angry Men(1957)" });
             return result;
         }
 

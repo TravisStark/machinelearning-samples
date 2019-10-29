@@ -17,9 +17,7 @@
         <div class="col-sm-3">
             <div class="card">
                 <div class="card-block">
-                    <img src="~/images/@profile.ProfileImageName" width="100" height="100" align="bottom" class="img-circle" />
-                    <br /> <br>
-                    <a href="@Url.Action("Watched", "Movies", new { id = profile.ProfileID })" style="font-size:26px" class="card-title">@profile.ProfileName</a>
+                   <a href="@Url.Action("Watched", "Movies", new { id = profile.ProfileID })" style="font-size:26px" class="card-title">@profile.ProfileName</a>
                 </div>
             </div>
         </div>

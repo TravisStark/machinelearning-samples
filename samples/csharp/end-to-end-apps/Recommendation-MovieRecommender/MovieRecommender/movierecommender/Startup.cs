@@ -23,7 +23,10 @@ namespace movierecommender
         {
             services.AddSingleton<IProfileService, ProfileService>();
             services.AddSingleton<IMovieService, MovieService>();
+
+            /******************/
             services.AddPredictionEnginePool<MovieRating, MovieRatingPrediction>().FromFile(Configuration["MLModelPath"]);
+            /******************/
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
