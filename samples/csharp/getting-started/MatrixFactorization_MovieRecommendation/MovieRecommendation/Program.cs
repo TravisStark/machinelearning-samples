@@ -48,7 +48,7 @@ namespace MovieRecommendation
             options.MatrixColumnIndexColumnName = "userIdEncoded";
             options.MatrixRowIndexColumnName = "movieIdEncoded";
             options.LabelColumnName = "Label";
-            options.NumberOfIterations = 50;
+            options.NumberOfIterations = 100;
             options.ApproximationRank = 100;
 
             //STEP 4: Create the training pipeline 
@@ -63,7 +63,10 @@ namespace MovieRecommendation
             IDataView testDataView = mlcontext.Data.LoadFromTextFile<MovieRating>(TestDataLocation, hasHeader: true, separatorChar: ',');
             var prediction = model.Transform(testDataView);
             var metrics = mlcontext.Regression.Evaluate(prediction, labelColumnName: "Label", scoreColumnName: "Score");
-            Console.WriteLine("\nThe model evaluation metrics RootMeanSquaredError: " + metrics.RootMeanSquaredError + "\n\n\n");
+            //Console.WriteLine("\nThe model evaluation metrics RootMeanSquaredError: " + metrics.RootMeanSquaredError + "\n\n\n");
+            Console.WriteLine("Root Mean Squared Error : " + metrics.RootMeanSquaredError.ToString());
+            Console.WriteLine("RSquared: " + metrics.RSquared.ToString());
+
 
             //STEP 7:  Try/test a single prediction by predicting a single movie rating for a specific user
             var predictionengine = mlcontext.Model.CreatePredictionEngine<MovieRating, MovieRatingPrediction>(model);
@@ -91,6 +94,8 @@ namespace MovieRecommendation
             Console.WriteLine("\nFor UserID " + predictionuserId + ":");
             Console.WriteLine("The movie rating prediction (1 - 5 stars) is: " + roundedPrediction);
             Console.WriteLine(recommendationResult);
+
+            //Console.WriteLine("\nAccuracy: " + );
 
             Console.WriteLine("\n\n=============== End of process, hit any key to finish ===============");
             Console.ReadLine();
