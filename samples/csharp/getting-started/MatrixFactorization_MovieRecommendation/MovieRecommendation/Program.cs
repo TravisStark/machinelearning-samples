@@ -1,9 +1,9 @@
-﻿using System;
-using Microsoft.ML;
-using MovieRecommendationConsoleApp.DataStructures;
-using MovieRecommendation.DataStructures;
-using System.IO;
+﻿using Microsoft.ML;
 using Microsoft.ML.Trainers;
+using MovieRecommendation.DataStructures;
+using MovieRecommendationConsoleApp.DataStructures;
+using System;
+using System.IO;
 
 namespace MovieRecommendation
 {
@@ -22,8 +22,11 @@ namespace MovieRecommendation
 
         private static string ModelPath = GetAbsolutePath(ModelsRelativePath);
 
-        private const float predictionuserId = 6;
+        //private const float predictionuserId = 6;
         private const int predictionmovieId = 10;
+
+        private const float predictionuserId = 1000;
+        //private const int predictionmovieId = 10;
 
         static void Main(string[] args)
         {
@@ -32,40 +35,43 @@ namespace MovieRecommendation
 
             //STEP 2: Read the training data which will be used to train the movie recommendation model    
             //The schema for training data is defined by type 'TInput' in LoadFromTextFile<TInput>() method.
-            IDataView trainingDataView = mlcontext.Data.LoadFromTextFile<MovieRating>(TrainingDataLocation, hasHeader: true, separatorChar:',');
+            IDataView trainingDataView = mlcontext.Data.LoadFromTextFile<MovieRating>(TrainingDataLocation, hasHeader: true, separatorChar: ',');
 
             //STEP 3: Transform your data by encoding the two features userId and movieID. These encoded features will be provided as input
             //        to our MatrixFactorizationTrainer.
-            var dataProcessingPipeline = mlcontext.Transforms.Conversion.MapValueToKey(outputColumnName: "userIdEncoded", inputColumnName: nameof(MovieRating.userId))
-                           .Append(mlcontext.Transforms.Conversion.MapValueToKey(outputColumnName: "movieIdEncoded", inputColumnName: nameof(MovieRating.movieId)));
-            
+            var dataProcessingPipeline = mlcontext
+                .Transforms.Conversion.MapValueToKey(outputColumnName: "userIdEncoded", inputColumnName: nameof(MovieRating.userId))
+                .Append(mlcontext.Transforms.Conversion.MapValueToKey(outputColumnName: "movieIdEncoded", inputColumnName: nameof(MovieRating.movieId)));
+
             //Specify the options for MatrixFactorization trainer            
             MatrixFactorizationTrainer.Options options = new MatrixFactorizationTrainer.Options();
             options.MatrixColumnIndexColumnName = "userIdEncoded";
             options.MatrixRowIndexColumnName = "movieIdEncoded";
             options.LabelColumnName = "Label";
-            options.NumberOfIterations = 20;
+            options.NumberOfIterations = 50;
             options.ApproximationRank = 100;
 
             //STEP 4: Create the training pipeline 
             var trainingPipeLine = dataProcessingPipeline.Append(mlcontext.Recommendation().Trainers.MatrixFactorization(options));
 
-            //STEP 5: Train the model fitting to the DataSet
+            //STEP 5: Train the model by fitting the DataSet
             Console.WriteLine("=============== Training the model ===============");
             ITransformer model = trainingPipeLine.Fit(trainingDataView);
 
             //STEP 6: Evaluate the model performance 
-            Console.WriteLine("=============== Evaluating the model ===============");
-            IDataView testDataView = mlcontext.Data.LoadFromTextFile<MovieRating>(TestDataLocation, hasHeader: true, separatorChar: ','); 
+            Console.WriteLine("=============== Evaluating the model ===============\n\n");
+            IDataView testDataView = mlcontext.Data.LoadFromTextFile<MovieRating>(TestDataLocation, hasHeader: true, separatorChar: ',');
             var prediction = model.Transform(testDataView);
             var metrics = mlcontext.Regression.Evaluate(prediction, labelColumnName: "Label", scoreColumnName: "Score");
-            Console.WriteLine("The model evaluation metrics RootMeanSquaredError:" + metrics.RootMeanSquaredError);
-            
+            Console.WriteLine("\nThe model evaluation metrics RootMeanSquaredError: " + metrics.RootMeanSquaredError + "\n\n\n");
+
             //STEP 7:  Try/test a single prediction by predicting a single movie rating for a specific user
             var predictionengine = mlcontext.Model.CreatePredictionEngine<MovieRating, MovieRatingPrediction>(model);
-            /* Make a single movie rating prediction, the scores are for a particular user and will range from 1 - 5. 
-               The higher the score the higher the likelyhood of a user liking a particular movie.
-               You can recommend a movie to a user if say rating > 3.5.*/
+            /* 
+            Make a single movie rating prediction, the scores are for a particular user and will range from 1 - 5. 
+            The higher the score the higher the likelyhood of a user liking a particular movie.
+            A movie is recommended to a user if the predicted rating > 3.
+            */
             var movieratingprediction = predictionengine.Predict(
                 new MovieRating()
                 {
@@ -74,11 +80,19 @@ namespace MovieRecommendation
                     movieId = predictionmovieId
                 }
             );
+            var roundedPrediction = Math.Round(movieratingprediction.Score, 1);
+            var isRecommended = roundedPrediction > 3;
 
             Movie movieService = new Movie();
-            Console.WriteLine("For userId:" + predictionuserId + " movie rating prediction (1 - 5 stars) for movie:" + movieService.Get(predictionmovieId).movieTitle + " is:" + Math.Round(movieratingprediction.Score, 1));
+            var movieTitle = movieService.Get(predictionmovieId).movieTitle;
+            var recommendationResult = isRecommended ? ("\n" + movieTitle + " is recommended.\n\n\n") : ("\n" + movieTitle + " is not recommended.\n\n\n");
 
-            Console.WriteLine("=============== End of process, hit any key to finish ===============");
+            Console.WriteLine("\nChosen movie: " + movieTitle);
+            Console.WriteLine("\nFor UserID " + predictionuserId + ":");
+            Console.WriteLine("The movie rating prediction (1 - 5 stars) is: " + roundedPrediction);
+            Console.WriteLine(recommendationResult);
+
+            Console.WriteLine("\n\n=============== End of process, hit any key to finish ===============");
             Console.ReadLine();
         }
 

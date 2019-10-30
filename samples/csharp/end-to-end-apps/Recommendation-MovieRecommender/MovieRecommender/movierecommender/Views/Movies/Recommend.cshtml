@@ -61,7 +61,7 @@
 </div>
 
 <hr />
-<h3 style="color:brown"><b>All-Time Top Box-Office movies (Recommended)</h3>
+<h3 style="color:brown"><b>Movies to Recommend</h3>
 <div class="row">
     @foreach (var movie in TrendingMovie)
     {
@@ -77,10 +77,17 @@
 
                                 var formatted = normalizedScore.ToString("0.##\\%");
                                 <span class="glyphicon glyphicon-fire"></span>@formatted;
+                                @if (normalizedScore > 60)
+                                {
+                                    <p>Recommended</p>
+                                }
+                                else
+                                {
+                                    <p>Not Recommended</p>
+                                }
                             }
                         }
                     }
-                    <a href="@Url.Action("Watch", "Movies")" class="btn-xs btn-primary">Play Movie</a>
                 </div>
             </div>
         </div>
